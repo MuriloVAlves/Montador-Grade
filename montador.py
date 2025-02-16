@@ -152,105 +152,114 @@ def criar_grade():
     return grade
 
 #A funcao deve inserir a proxima materia da grade e contar os creditos
-def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
+def montar_grade(_aulas:dict,_grade:dict,nested = 1):
     #Caso os creditos passem do limite
     if _grade['creditos'] > _creditos:
-        return _grade
+        if not _grade in gradesFinal:
+            gradesFinal.append(_grade.copy())
+        return
+        #return _grade
     #Caso não passe
-    if _idx == -1:
-        #Tentar inserir aula na grade
-        grades = []
-        hitCount = 0
-        for aula in _aulas.keys():
-            dias1 = list(_aulas[aula]['semana 1'].keys())
-            dias2 = list(_aulas[aula]['semana 2'].keys())
-            grade1 = list(_grade['semana 1'].keys())
-            grade2 = list(_grade['semana 2'].keys())
-            possivel = True
-            #Verificar grade
-            for i in range(2):
-                dia = [dias1,dias2][i]
-                grade = [grade1,grade2][i]
-                for d in dia:
-                    if d not in grade:
-                        possivel = False
-                        break
+    #Tentar inserir aula na grade
+    # if len(_recoverGrid) < nested:
+    #     recoverGrid = _recoverGrid + [_grade.copy()]
+    # for rec in _recoverGrid:
+    #     print(hex(id(rec)))
+    #     print(rec)
+    # print(_recoverGrid)
+    # grades = []
+    hitCount = 0
+    for aula in _aulas.keys():
+        print('nested:',nested)
+        for rec in _recoverGrid:
+            print(hex(id(rec)))
+            print(rec)
+        #print(_recoverGrid)
+        dias1 = list(_aulas[aula]['semana 1'].keys())
+        dias2 = list(_aulas[aula]['semana 2'].keys())
+        grade1 = list(_grade['semana 1'].keys())
+        grade2 = list(_grade['semana 2'].keys())
+        possivel = True
+        #Verificar grade
+        for i in range(2):
+            dia = [dias1,dias2][i]
+            grade = [grade1,grade2][i]
+            for d in dia:
+                if d not in grade:
+                    possivel = False
+                    break
 
-            if possivel:
-                #Checar se é possível inserir a materia
-                aplicavel = True
+        if possivel:
+            #Checar se é possível inserir a materia
+            aplicavel = True
+            for s in range(2):
+                dias = [dias1,dias2][s]
+                for dia in dias:
+                    if aplicavel == False:
+                        break
+                    #Criar horários
+                    h = _aulas[aula][f'semana {str(s+1)}'][dia]
+                    #Criar horarios disponiveis
+                    hora = []
+                    for i in range(int(h[0]),int(h[1])):
+                        hora.append(str(i))
+                    #Verificar o horario do dia está disponível
+                    for div in hora:
+                        if div in list(_grade[f'semana {str(s+1)}'][dia].keys()):
+                            aplicavel = False
+                            break
+            if aplicavel:
+                hitCount += 1
+                #Duplicar a grade
+                novaGrade = _grade.copy()
+                nomeDisc = str(_aulas[aula]['nome'])
+                codDisc = '('+str(_aulas[aula]['Cod. Disciplina'])+')'
+                #Inserir os horarios na tabela
                 for s in range(2):
                     dias = [dias1,dias2][s]
                     for dia in dias:
-                        if aplicavel == False:
-                            break
                         #Criar horários
                         h = _aulas[aula][f'semana {str(s+1)}'][dia]
-                        #Criar horarios disponiveis
-                        hora = []
+                        #Inserir os horários na tabela
                         for i in range(int(h[0]),int(h[1])):
-                            hora.append(str(i))
-                        #Verificar o horario do dia está disponível
-                        for div in hora:
-                            if div in list(_grade[f'semana {str(s+1)}'][dia].keys()):
-                                aplicavel = False
-                                break
-                if aplicavel:
-                    hitCount += 1
-                    #Duplicar a grade
-                    novaGrade = _grade.copy()
-                    #Inserir os horarios na tabela
-                    for s in range(2):
-                        dias = [dias1,dias2][s]
-                        for dia in dias:
-                            #Criar horários
-                            h = _aulas[aula][f'semana {str(s+1)}'][dia]
-                            #Inserir os horários na tabela
-                            for i in range(int(h[0]),int(h[1])):
-                                novaGrade[f'semana {str(s+1)}'][dia][str(i)] = str(_aulas[aula]['nome'])+'('+str(_aulas[aula]['Cod. Disciplina'])+')'
-                    novaGrade['creditos'] += _aulas[aula]['creditos']
-                    for al in range(len(_aulas.keys())):
-                        print(len(_aulas),_grade['creditos'],_idx)
-                        novaIterGrade = montar_grade(_aulas,novaGrade,-1)
-                        if type(novaIterGrade) != list: 
-                            if not novaIterGrade in grades:
-                                grades.append(novaIterGrade)
-                        else:
-                            grades += novaIterGrade
-        if hitCount == 0:
-            #Fim da grade
-            #Retirar falsa grade - aproveitamento da função para a montagem da primeira grade
-            if _foulidx == 0:
-                if not _grade in gradesFinal:
-                    gradesFinal.append(_grade)
-                return _grade
-            else:
-                #Retornar grade com creditos para  primeira contagem
-                return _grade
+                            novaGrade[f'semana {str(s+1)}'][dia][str(i)] = nomeDisc+ codDisc
+                novaGrade['creditos'] += _aulas[aula]['creditos']
+                #for al in range(len(_aulas.keys())):
+                    #print(len(_aulas),_grade['creditos'],_idx)
+                _recoverGrid[nested] = novaGrade.copy()
+                recover = montar_grade(_aulas,_recoverGrid[nested],nested+1)
+                print('nested:',nested)
+                _grade = _recoverGrid[nested-1].copy()
+                # print(_grade)
+                # if type(novaIterGrade) != list: 
+                #     if not novaIterGrade in grades:
+                #         grades.append(novaIterGrade)
+                # else:
+                #     grades += novaIterGrade
+    if hitCount == 0:
+        #Fim da grade
+        #Salvar caso seja uma grade nova
+        if not _grade in gradesFinal:
+            gradesFinal.append(_grade)
+            return _recoverGrid
         else:
-            pass
-            return grades
-                
+            #Retornar grade com creditos para  primeira contagem
+            return _recoverGrid
     else:
-        #Inserir a primeira aula na grade
-        insert = {}
-        insert[list(_aulas.keys())[_idx]] = _aulas[list(_aulas.keys())[_idx]]
-        #Fingir que tem só uma matéria
-        gradeInsert = montar_grade(insert,_grade,-1,1)
-        if type(gradeInsert) == list:
-            #Inserir grade novamente
-            for grd in gradeInsert:
-                _grade = montar_grade(_aulas,grd,-1)
-        return _grade
+        return _recoverGrid
+                
 
 #Loop para fazer a grade:
 gradesFinal = []
-for aula in range(len(listaAulas.keys())):
-    grade = montar_grade(listaAulas,criar_grade(),aula)
+# for aula in range(len(listaAulas.keys())):
+_recoverGrid = []
+for i in range(len(listaAulas)):
+    _recoverGrid.append(criar_grade())
+grade = montar_grade(listaAulas,criar_grade())
     #gradesFinal += grade
-    for grd in grade:
-        print(f'Grade gerada: '+str(grd['creditos'])+' créditos!')
-    pass
+    # for grd in grade:
+    #     print(f'Grade gerada: '+str(grd['creditos'])+' créditos!')
+    # pass
 pass
 print('Filtrando grades iguais...')
 #Encontrar grades repetidas:
