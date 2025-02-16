@@ -211,7 +211,7 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
                     novaGrade['creditos'] += _aulas[aula]['creditos']
                     for al in range(len(_aulas.keys())):
                         print(len(_aulas),_grade['creditos'],_idx)
-                        novaIterGrade = montar_grade(_aulas,novaGrade,al)
+                        novaIterGrade = montar_grade(_aulas,novaGrade,-1)
                         if type(novaIterGrade) != list: 
                             if not novaIterGrade in grades:
                                 grades.append(novaIterGrade)
@@ -228,6 +228,7 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
                 #Retornar grade com creditos para  primeira contagem
                 return _grade
         else:
+            pass
             return grades
                 
     else:
