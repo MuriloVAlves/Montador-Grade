@@ -7,6 +7,7 @@ _turno = 'Noturno' #Matutino/Noturno/Ambos
 _campus = 'SA' #SA/SB/Ambos
 _excluirDiaSemana = ['sábado','domingo'] #'segunda','terça','quarta','quinta','sexta','sábado','domingo'
 _creditos = 21 #'Max'
+_endereco = './planilha.txt'
 
 '''PROGRAMA - NÃO MUDAR'''
 #Fix credits
@@ -14,7 +15,7 @@ if _creditos == 'Max':
     _creditos = 99
 
 #Read text
-with open('./planilha.txt','r',encoding='utf-8') as arquivo:
+with open(_endereco,'r',encoding='utf-8') as arquivo:
     texto = arquivo.read()
 
 #Find page pattern and split
@@ -58,7 +59,7 @@ for cls in pgBody:
 TPIPttrn = re.compile(r'\d{1,2}-\d{1,2}-\d{1,2}')
 campusPttrn = re.compile(r'\((SA|SB)\)')
 codDiscPttrn = re.compile(r'[A-Z0-9]+-\d{2}[A-Z]{2}')
-horarioPttrn = re.compile(r'(segunda|terça|quarta|quinta|sexta|sábado|domingo)\sdas\s([0-9]+)[0-9:]+ às ([0-9]+)[0-9:]+, (semanal|quinzenal I| quinzenal II)')#,\s(semanal|quinzenal I| quinzenal II)
+horarioPttrn = re.compile(r'(segunda|terça|quarta|quinta|sexta|sábado|domingo)\sdas\s([0-9]+)[0-9:]+ às ([0-9]+)[0-9:]+[,;] (semanal|quinzenal I| quinzenal II)')#,\s(semanal|quinzenal I| quinzenal II)
 profPttrn = re.compile(r'([A-Z]\D+) ')
 #Make json class
 classesJSON = {}
@@ -72,7 +73,6 @@ for txt in classes:
     #Variaveis com split
     curso = txt.split(codDisc)[0].removeprefix(' ').removesuffix(' ')
     materia = txt.split(codDisc)[1].split(f'({campus})')[0]
-    
     semana1 = {}
     semana2 = {}
     parse = txt.split(f'({campus})')[1].split(campus)[0]
@@ -293,7 +293,8 @@ for g in range(len(gradesIdeais)):
                     materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
     print(' ')
 '''Funcoes Interface'''
-
+def saveFile():
+    pass
 
 
 '''Interface'''
@@ -339,6 +340,13 @@ while latch:
                 print('2. Adicionar curso')
                 print('3. Remover curso')
                 print('4 Limpar curso')
-                pass
-
-#print(classesJSON.keys())
+                inp = input('O que você deseja fazer? ')
+                print(' ')
+                match inp:
+                    case '0':
+                        latch2 = False
+                    case '1':
+                        n=1
+                        for curso in classesJSON.keys():
+                            print(f'{n} - '+str(curso))
+                            n+=1
