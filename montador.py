@@ -152,13 +152,15 @@ def criar_grade():
     return grade
 
 #A funcao deve inserir a proxima materia da grade e contar os creditos
-def montar_grade(_aulas:dict,_grade:dict,_idx:int):
+def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
     #Caso os creditos passem do limite
     if _grade['creditos'] > _creditos:
         return _grade
     #Caso não passe
     if _idx == -1:
         #Tentar inserir aula na grade
+        grades = []
+        hitCount = 0
         for aula in _aulas.keys():
             dias1 = list(_aulas[aula]['semana 1'].keys())
             dias2 = list(_aulas[aula]['semana 2'].keys())
@@ -190,6 +192,9 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int):
                             if div in list(_grade[f'semana {str(s+1)}'][dia].keys()):
                                 aplicavel = False
                 if aplicavel:
+                    hitCount += 1
+                    #Duplicar a grade
+                    novaGrade = _grade.copy()
                     #Inserir os horarios na tabela
                     for s in range(2):
                         dias = [dias1,dias2][s]
@@ -198,25 +203,43 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int):
                             h = _aulas[aula][f'semana {str(s+1)}'][dia]
                             #Inserir os horários na tabela
                             for i in range(int(h[0]),int(h[1])):
-                                _grade[f'semana {str(s+1)}'][dia][str(i)] = str(_aulas[aula]['nome'])+'('+str(_aulas[aula]['Cod. Disciplina'])+')'
-                    _grade['creditos'] += _aulas[aula]['creditos']
-        return _grade
+                                novaGrade[f'semana {str(s+1)}'][dia][str(i)] = str(_aulas[aula]['nome'])+'('+str(_aulas[aula]['Cod. Disciplina'])+')'
+                    novaGrade['creditos'] += _aulas[aula]['creditos']
+                    novaGrade = montar_grade(_aulas,novaGrade,-1,_foulidx)
+                    if type(novaGrade) != list: 
+                        grades.append(novaGrade)
+                    else:
+                        grades += novaGrade
+        if hitCount == 0:
+            #Fim da grade
+            #Retirar falsa grade - aproveitamento da função para a montagem da primeira grade
+            if _foulidx == 0:
+                gradesFinal.append(_grade)
+                return _grade
+            else:
+                #Retornar grade com creditos para  primeira contagem
+                return _grade
+        else:
+            return grades
                 
     else:
         #Inserir a primeira aula na grade
         insert = {}
         insert[list(_aulas.keys())[_idx]] = _aulas[list(_aulas.keys())[_idx]]
         #Fingir que tem só uma matéria
-        gradeInsert = montar_grade(insert,_grade,-1)
-        #Inserir grade novamente
-        _grade = montar_grade(_aulas,gradeInsert,-1)
+        gradeInsert = montar_grade(insert,_grade,-1,1)
+        if type(gradeInsert) == list:
+            #Inserir grade novamente
+            for grd in gradeInsert:
+                _grade = montar_grade(_aulas,grd,-1)
         return _grade
 
 #Loop para fazer a grade:
 gradesFinal = []
 for aula in range(len(listaAulas.keys())):
-    gradesFinal.append(criar_grade())
-    gradesFinal[-1] = montar_grade(listaAulas,gradesFinal[-1],aula)
+    grade = montar_grade(listaAulas,criar_grade(),aula)
+    for grd in grade:
+        print(f'Grade gerada: '+str(grd['creditos'])+' créditos!')
     pass
 
 #Encontrar grades repetidas:
@@ -291,6 +314,7 @@ for g in range(len(gradesIdeais)):
                 else:
                     print(grade1[f'semana {s+1}'][dia][horario])
                     materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+    print('*Créditos totais: '+str(grade1['creditos']))
     print(' ')
 '''Funcoes Interface'''
 
