@@ -174,6 +174,7 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
                 for d in dia:
                     if d not in grade:
                         possivel = False
+                        break
 
             if possivel:
                 #Checar se é possível inserir a materia
@@ -181,6 +182,8 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
                 for s in range(2):
                     dias = [dias1,dias2][s]
                     for dia in dias:
+                        if aplicavel == False:
+                            break
                         #Criar horários
                         h = _aulas[aula][f'semana {str(s+1)}'][dia]
                         #Criar horarios disponiveis
@@ -191,6 +194,7 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
                         for div in hora:
                             if div in list(_grade[f'semana {str(s+1)}'][dia].keys()):
                                 aplicavel = False
+                                break
                 if aplicavel:
                     hitCount += 1
                     #Duplicar a grade
@@ -205,16 +209,20 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
                             for i in range(int(h[0]),int(h[1])):
                                 novaGrade[f'semana {str(s+1)}'][dia][str(i)] = str(_aulas[aula]['nome'])+'('+str(_aulas[aula]['Cod. Disciplina'])+')'
                     novaGrade['creditos'] += _aulas[aula]['creditos']
-                    novaGrade = montar_grade(_aulas,novaGrade,-1,_foulidx)
-                    if type(novaGrade) != list: 
-                        grades.append(novaGrade)
-                    else:
-                        grades += novaGrade
+                    for al in range(len(_aulas.keys())):
+                        print(len(_aulas),_grade['creditos'],_idx)
+                        novaIterGrade = montar_grade(_aulas,novaGrade,al)
+                        if type(novaIterGrade) != list: 
+                            if not novaIterGrade in grades:
+                                grades.append(novaIterGrade)
+                        else:
+                            grades += novaIterGrade
         if hitCount == 0:
             #Fim da grade
             #Retirar falsa grade - aproveitamento da função para a montagem da primeira grade
             if _foulidx == 0:
-                gradesFinal.append(_grade)
+                if not _grade in gradesFinal:
+                    gradesFinal.append(_grade)
                 return _grade
             else:
                 #Retornar grade com creditos para  primeira contagem
@@ -238,13 +246,16 @@ def montar_grade(_aulas:dict,_grade:dict,_idx:int,_foulidx=0):
 gradesFinal = []
 for aula in range(len(listaAulas.keys())):
     grade = montar_grade(listaAulas,criar_grade(),aula)
+    #gradesFinal += grade
     for grd in grade:
         print(f'Grade gerada: '+str(grd['creditos'])+' créditos!')
     pass
-
+pass
+print('Filtrando grades iguais...')
 #Encontrar grades repetidas:
 gradesFilter = []
 for i in range(len(gradesFinal)):
+    print(str(i)+'/'+str(len(gradesFinal)))
     isEqual = True
     if i != len(gradesFinal)-1:
         for j in range(1,len(gradesFinal)-i):
@@ -262,6 +273,7 @@ for i in range(len(gradesFinal)):
                                 isEqual = False
                                 break
     if not isEqual:
+        print('Grade distinta encontrada!')
         gradesFilter.append(grade1)
 gradesFinal = gradesFilter
     
