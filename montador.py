@@ -1,22 +1,44 @@
 import re, copy, time
 from math import trunc
-'''Modificar apenas aqui'''
+
+
 #global variables
-_cursos = ['BACHARELADO EM ENGENHARIA DE INFORMAÇÃO', 'BACHARELADO EM ENGENHARIA DE INSTRUMENTAÇÃO, AUTOMAÇÃO E ROBÓTICA','BACHARELADO EM ENGENHARIA AEROESPACIAL']
-_turno = 'Noturno' #Matutino/Noturno/Ambos
-_campus = 'SA' #SA/SB/Ambos
-_excluirDiaSemana = ['sábado','domingo'] #'segunda','terça','quarta','quinta','sexta','sábado','domingo'
-_creditos = 21 #'Max'
-_endereco = './planilha.txt'
+#Ler arquivo config
+with open('./bin/config.txt','r',encoding='utf-8') as arquivo:
+    texto = arquivo.read()
+    arquivo.close()
+texto = texto.split('\n')
+
+#recuperar curso
+pttrn = re.compile(r"'(.+?)'")
+_cursos = re.findall(pttrn,texto[0])
+
+#recuperar turno
+pttrn = re.compile(r'_turno: (Matutino|Noturno|Ambos)')
+_turno = re.findall(pttrn,texto[1])[0] #Matutino/Noturno/Ambos
+
+#recuperar campus
+pttrn = re.compile(r'_campus: (SA|SB|Ambos)')
+_campus = re.findall(pttrn,texto[2])[0] #SA/SB/Ambos
+
+#recuperar dias da semana
+pttrn = re.compile(r"'(.+?)'")
+_excluirDiaSemana = re.findall(pttrn,texto[3]) #'segunda','terça','quarta','quinta','sexta','sábado','domingo'
+
+#recuperar creditos:
+pttrn = re.compile(r'_creditos: (\d+)')
+_creditos = int(re.findall(pttrn,texto[4])[0]) #Colocar um valor alto para maximizar os creditos
+
+#recuperar endereço planilha
+pttrn = re.compile(r"\./([A-Za-z\. 0-9/]+).txt")
+_endereco = './'+re.findall(pttrn,texto[5])[0]+'.txt'
 
 '''PROGRAMA - NÃO MUDAR'''
-#Fix credits
-if _creditos == 'Max':
-    _creditos = 99
 
 #Read text
 with open(_endereco,'r',encoding='utf-8') as arquivo:
     texto = arquivo.read()
+    arquivo.close()
 
 #Find page pattern and split
 pttrn = re.compile(r'\d{1,3} / \d{1,3}')
@@ -173,7 +195,7 @@ def montar_grade(_aulas:dict,_grade:dict,nested = 1):
     delta2 = 0
     for aula in _aulas.keys():
         if time.time()-delta2>0.5:
-            print(f'\r{len(gradesFinal)} grades encontradas! -> '+'Testando classes... '+f'(delta: {trunc(time.time()-delta)}s)',end='')
+            print(f'\r{len(gradesFinal)} grades encontradas! -> '+'Testando classes... '+f'(tempo: {trunc(time.time()-delta)}s)',end='')
             delta2 = time.time()
         # print('----------')
         # print('nested:',nested)
@@ -268,32 +290,32 @@ grade = montar_grade(listaAulas,criar_grade())
     # for grd in grade:
     #     print(f'Grade gerada: '+str(grd['creditos'])+' créditos!')
     # pass
-pass
-print('Filtrando grades iguais...')
-#Encontrar grades repetidas:
-gradesFilter = []
-for i in range(len(gradesFinal)):
-    print('\r'+str(i)+'/'+str(len(gradesFinal)),end='')
-    isEqual = True
-    if i != len(gradesFinal)-1:
-        for j in range(1,len(gradesFinal)-i):
-            grade1 = gradesFinal[i]
-            grade2 = gradesFinal[i+j]
-            for s in range(2):
-                for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
-                    if isEqual:
-                        for horario in grade1[f'semana {s+1}'][dia].keys():
-                            try:
-                                if grade1[f'semana {s+1}'][dia][horario] != grade2[f'semana {s+1}'][dia][horario]:
-                                    isEqual = False
-                                    break
-                            except Exception:
-                                isEqual = False
-                                break
-    if not isEqual:
-        # print('Grade distinta encontrada!')
-        gradesFilter.append(grade1)
-gradesFinal = gradesFilter
+print(' ')
+# print('Filtrando grades iguais...')
+# #Encontrar grades repetidas:
+# gradesFilter = []
+# for i in range(len(gradesFinal)):
+#     print('\r'+str(i)+'/'+str(len(gradesFinal)),end='')
+#     isEqual = True
+#     if i != len(gradesFinal)-1:
+#         for j in range(1,len(gradesFinal)-i):
+#             grade1 = gradesFinal[i]
+#             grade2 = gradesFinal[i+j]
+#             for s in range(2):
+#                 for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+#                     if isEqual:
+#                         for horario in grade1[f'semana {s+1}'][dia].keys():
+#                             try:
+#                                 if grade1[f'semana {s+1}'][dia][horario] != grade2[f'semana {s+1}'][dia][horario]:
+#                                     isEqual = False
+#                                     break
+#                             except Exception:
+#                                 isEqual = False
+#                                 break
+#     if not isEqual:
+#         # print('Grade distinta encontrada!')
+#         gradesFilter.append(grade1)
+# gradesFinal = gradesFilter
     
 #Encontrar quantidade de grades e créditos e listar
 contagemCreditosGrade = {}
@@ -349,23 +371,94 @@ for g in range(len(gradesIdeais)):
 
 
 '''Funcoes Interface'''
-def saveFile():
-    pass
+def save_file():
+    #Limpar configuracoes antigas
+    open('./bin/config.txt','w').close()
+    #Inserir configuracoes novas
+    with open('./bin/config.txt','a',encoding='utf-8') as arquivo:
+        arquivo.write('_cursos: '+str(_cursos)+'\n')
+        arquivo.write('_turno: '+str(_turno)+'\n')
+        arquivo.write('_campus: '+str(_campus)+'\n')
+        arquivo.write('_excluirDiaSemana: '+str(_excluirDiaSemana)+'\n')
+        arquivo.write('_creditos: '+str(_creditos)+'\n')
+        arquivo.write('_endereco: '+str(_endereco)+'\n')
+        
 
 
 
 '''Interface'''
 latch = True
 while latch:
+    #Interface principal
     print('0. Sair')
-    print('1. Grades alternativas')
-    print('2. Consultar cursos inseridos')
+    print('1. Selecionar grades por matérias')
+    print('2. Grades alternativas')
+    print('3. Configurar cursos')
+    print('4. Configurar campus')
     inp = input('O que você deseja fazer? ')
     print(' ')
     match inp:
         case '0':
             latch = False
         case '1':
+            _preferencias = []
+            latch2 = True
+            while latch2:
+                print(' ')
+                n = 1
+                for aula in listaAulas.keys():
+                    print(f'{n} - '+str(aula))
+                    n += 1
+                inp = int(input('Selecione matérias para conter nas grades (0 para voltar / -1 para limpar preferências): '))
+                print(' ')
+                if inp == 0:
+                    latch2 = False
+                elif inp == -1:
+                    _preferencias = []
+                    print('As preferências foram apagadas!')
+                else:
+                    _preferencias.append(list(listaAulas.keys())[inp-1])
+                    print('Preferências: ',_preferencias)
+                    for g in range(len(gradesIdeais)):
+                        #Separar materias da grade
+                        materiasOutput = {}
+                        for s in range(2):
+                            grade1 = gradesIdeais[g]
+                            for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+                                for horario in grade1[f'semana {s+1}'][dia].keys():
+                                    if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
+                                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
+                                    else:
+                                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+                        #Checar se todas as preferencias estão contidas na grade
+                        contido = 0
+                        for pref in _preferencias:
+                            for materia in list(materiasOutput.keys()):
+                                if pref in materia:
+                                    contido += 1
+                                    break
+                        #Caso verdadeiro
+                        if contido == len(_preferencias):
+                            #Print da grade
+                            print(f'----------- Grade {g+1} -----------')
+                            materiasOutput = {}
+                            for s in range(2):
+                                grade1 = gradesIdeais[g]
+                                for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+                                    for horario in grade1[f'semana {s+1}'][dia].keys():
+                                        if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
+                                            pass
+                                            materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
+                                        else:
+                                            print(grade1[f'semana {s+1}'][dia][horario])
+                                            materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+                            print('*Créditos totais: '+str(grade1['creditos']))
+                            print(' ')
+                    
+                    
+                    
+                
+        case '2':
             print('************** GRADES ALTERNATIVAS **************')
             #Grades alternativas
             for g in range(len(gradesAlternativas)):
@@ -383,27 +476,71 @@ while latch:
                                 materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
                 print('*Créditos totais: '+str(grade1['creditos']))
                 print(' ')
-        case '2':
-            latch2 = True
+        case '3':
             n = 0
             print('Cursos selecionados:')
             for curso in _cursos:
                 print(f'{n+1} - {curso}')
                 n += 1
+            latch2 = True
             print(' ')
             while latch2:
+                print(' ')
                 print('0. Voltar')
-                print('1. Consultar cursos')
+                print('1. Consultar cursos selecionados')
                 print('2. Adicionar curso')
                 print('3. Remover curso')
-                print('4 Limpar curso')
+                print('4 Limpar cursos')
+                print('5. Salvar mudanças')
                 inp = input('O que você deseja fazer? ')
                 print(' ')
                 match inp:
                     case '0':
                         latch2 = False
                     case '1':
-                        n=1
-                        for curso in classesJSON.keys():
-                            print(f'{n} - '+str(curso))
-                            n+=1
+                        n = 0
+                        print('Cursos selecionados:')
+                        for curso in _cursos:
+                            print(f'{n+1} - {curso}')
+                            n += 1
+                    case '2':
+                        latch3 = True
+                        while latch3:
+                            n=1
+                            for curso in classesJSON.keys():
+                                print(f'{n} - '+str(curso))
+                                n+=1
+                            inp = int(input('Selecione os cursos que deseja adicionar (0 para voltar): '))
+                            print(' ')
+                            if inp == 0:
+                                latch3 = False
+                            else:
+                                if list(classesJSON.keys())[inp-1] not in _cursos:
+                                    _cursos.append(list(classesJSON.keys())[inp-1])
+                                    print(str(list(classesJSON.keys())[inp-1])+' foi adicionado!')
+                                else:
+                                    print('O curso já estava selecionado! (sem mudanças)')
+                    case '3':
+                        latch3 = True
+                        while latch3:
+                            n = 0
+                            print('Cursos selecionados:')
+                            for curso in _cursos:
+                                print(f'{n+1} - {curso}')
+                                n += 1
+                            inp = int(input('Selecione os cursos que deseja remover (0 para voltar): '))
+                            print(' ')
+                            if inp == 0:
+                                latch3 = False
+                            else:
+                                pop = _cursos.pop(inp-1)
+                                print(str(pop)+' removido!')
+                    case '4':
+                        _cursos = []
+                    
+                    case '5':
+                        print('Mudanças salvas!')
+                        save_file()
+
+                            
+
