@@ -1,5 +1,5 @@
-import re
-
+import re, copy, time
+from math import trunc
 '''Modificar apenas aqui'''
 #global variables
 _cursos = ['BACHARELADO EM ENGENHARIA DE INFORMAÇÃO', 'BACHARELADO EM ENGENHARIA DE INSTRUMENTAÇÃO, AUTOMAÇÃO E ROBÓTICA','BACHARELADO EM ENGENHARIA AEROESPACIAL']
@@ -152,6 +152,7 @@ def criar_grade():
     return grade
 
 #A funcao deve inserir a proxima materia da grade e contar os creditos
+delta = 0
 def montar_grade(_aulas:dict,_grade:dict,nested = 1):
     #Caso os creditos passem do limite
     if _grade['creditos'] > _creditos:
@@ -169,12 +170,18 @@ def montar_grade(_aulas:dict,_grade:dict,nested = 1):
     # print(_recoverGrid)
     # grades = []
     hitCount = 0
+    delta2 = 0
     for aula in _aulas.keys():
-        print('nested:',nested)
-        for rec in _recoverGrid:
-            print(hex(id(rec)))
-            print(rec)
-        #print(_recoverGrid)
+        if time.time()-delta2>0.5:
+            print(f'\r{len(gradesFinal)} grades encontradas! -> '+'Testando classes... '+f'(delta: {trunc(time.time()-delta)}s)',end='')
+            delta2 = time.time()
+        # print('----------')
+        # print('nested:',nested)
+        # for rec in _recoverGrid:
+        #     print(hex(id(rec)))
+        #     print(rec)
+        # #print(_recoverGrid)
+        # print(_grade)
         dias1 = list(_aulas[aula]['semana 1'].keys())
         dias2 = list(_aulas[aula]['semana 2'].keys())
         grade1 = list(_grade['semana 1'].keys())
@@ -211,7 +218,7 @@ def montar_grade(_aulas:dict,_grade:dict,nested = 1):
             if aplicavel:
                 hitCount += 1
                 #Duplicar a grade
-                novaGrade = _grade.copy()
+                novaGrade = copy.deepcopy(_grade)
                 nomeDisc = str(_aulas[aula]['nome'])
                 codDisc = '('+str(_aulas[aula]['Cod. Disciplina'])+')'
                 #Inserir os horarios na tabela
@@ -226,10 +233,10 @@ def montar_grade(_aulas:dict,_grade:dict,nested = 1):
                 novaGrade['creditos'] += _aulas[aula]['creditos']
                 #for al in range(len(_aulas.keys())):
                     #print(len(_aulas),_grade['creditos'],_idx)
-                _recoverGrid[nested] = novaGrade.copy()
+                _recoverGrid[nested] = copy.deepcopy(novaGrade)
                 recover = montar_grade(_aulas,_recoverGrid[nested],nested+1)
-                print('nested:',nested)
-                _grade = _recoverGrid[nested-1].copy()
+                # print('nested:',nested)
+                _grade = copy.deepcopy(_recoverGrid[nested-1])
                 # print(_grade)
                 # if type(novaIterGrade) != list: 
                 #     if not novaIterGrade in grades:
@@ -240,7 +247,7 @@ def montar_grade(_aulas:dict,_grade:dict,nested = 1):
         #Fim da grade
         #Salvar caso seja uma grade nova
         if not _grade in gradesFinal:
-            gradesFinal.append(_grade)
+            gradesFinal.append(copy.deepcopy(_grade))
             return _recoverGrid
         else:
             #Retornar grade com creditos para  primeira contagem
@@ -255,6 +262,7 @@ gradesFinal = []
 _recoverGrid = []
 for i in range(len(listaAulas)):
     _recoverGrid.append(criar_grade())
+delta = time.time()
 grade = montar_grade(listaAulas,criar_grade())
     #gradesFinal += grade
     # for grd in grade:
@@ -265,7 +273,7 @@ print('Filtrando grades iguais...')
 #Encontrar grades repetidas:
 gradesFilter = []
 for i in range(len(gradesFinal)):
-    print(str(i)+'/'+str(len(gradesFinal)))
+    print('\r'+str(i)+'/'+str(len(gradesFinal)),end='')
     isEqual = True
     if i != len(gradesFinal)-1:
         for j in range(1,len(gradesFinal)-i):
@@ -283,7 +291,7 @@ for i in range(len(gradesFinal)):
                                 isEqual = False
                                 break
     if not isEqual:
-        print('Grade distinta encontrada!')
+        # print('Grade distinta encontrada!')
         gradesFilter.append(grade1)
 gradesFinal = gradesFilter
     
@@ -338,7 +346,10 @@ for g in range(len(gradesIdeais)):
                     materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
     print('*Créditos totais: '+str(grade1['creditos']))
     print(' ')
+
+
 '''Funcoes Interface'''
+
 
 
 
