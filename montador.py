@@ -56,7 +56,9 @@ for page in pages:
 classes = []
 #Tipos de classes
 #BACHARELADO|ENGENHARIAS|LICENCIATURA
-pttrn = re.compile(r'( BACHARELADO| ENGENHARIAS| LICENCIATURA)')
+pttrn = re.compile(r'(BACHARELADO EM|ENGENHARIAS|LICENCIATURA EM)')
+TPIPttrn = re.compile(r'\d{1,2}-\d{1,2}-\d{1,2}')
+concat = ''
 for cls in pgBody:
     
     #Split new line char
@@ -64,28 +66,30 @@ for cls in pgBody:
     # if found -> Start a new string
     # else -> concat strings
     literalText = cls.split('\n')
-    concat = ''
     
     for text in literalText:
         if len(re.findall(pttrn,text)):
-            if concat != '':
+            if concat != '' and len(re.findall(TPIPttrn,concat)):
                 classes.append(concat)
                 concat = text
             else:
-                concat = text
+                concat += text
         else:
-            concat += text
-
+            concat += ' '+text
+#Para a última matéria
+if concat != '' and len(re.findall(TPIPttrn,concat)):
+    classes.append(concat)
+    concat = text
 #Split classes info
 #Patterns to find
 TPIPttrn = re.compile(r'\d{1,2}-\d{1,2}-\d{1,2}')
 campusPttrn = re.compile(r'\((SA|SB)\)')
 codDiscPttrn = re.compile(r'[A-Z0-9]+-\d{2}[A-Z]{2}')
-horarioPttrn = re.compile(r'(segunda|terça|quarta|quinta|sexta|sábado|domingo)\sdas\s([0-9]+)[0-9:]+ às ([0-9]+)[0-9:]+[,;] (semanal|quinzenal I| quinzenal II)')#,\s(semanal|quinzenal I| quinzenal II)
+horarioPttrn = re.compile(r'(segunda|terça|quarta|quinta|sexta|sábado|domingo)\sdas\s([0-9]+)[0-9:]+ às ([0-9]+)[0-9:]+[,;]')#,\s(semanal|quinzenal I| quinzenal II)
+semanaPttrn = re.compile(r'(semanal|quinzenal I| quinzenal II)')
 profPttrn = re.compile(r'([A-Z]\D+) ')
 #Make json class
 classesJSON = {}
-
 for txt in classes:
     TPI = re.findall(TPIPttrn,txt)[0]
     credit = int(TPI.split('-')[0])+int(TPI.split('-')[1])
@@ -97,10 +101,10 @@ for txt in classes:
     materia = txt.split(codDisc)[1].split(f'({campus})')[0]
     semana1 = {}
     semana2 = {}
-    parse = txt.split(f'({campus})')[1].split(campus)[0]
-    
-    for horario in re.findall(horarioPttrn,parse):
-        dia,inicio,fim,semana = horario
+    parse = txt.split(f'({campus})')[1].split(TPI)[0]
+    for horario in range(len(re.findall(horarioPttrn,parse))):
+        dia,inicio,fim = re.findall(horarioPttrn,parse)[horario]
+        semana = re.findall(semanaPttrn,parse)[horario]
         if 'semanal' in semana:
             semana1[dia] = [float(inicio),float(fim)]
             semana2[dia] = [float(inicio),float(fim)]
@@ -353,21 +357,43 @@ while not gradeIdeal:
 #Output Grades
 print('************** GRADES IDEAIS **************')
 #Grades ideais:
-for g in range(len(gradesIdeais)):
-    print(f'----------- Grade {g+1} -----------')
-    materiasOutput = {}
-    for s in range(2):
-        grade1 = gradesIdeais[g]
-        for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
-            for horario in grade1[f'semana {s+1}'][dia].keys():
-                if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
-                    pass
-                    materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
-                else:
-                    print(grade1[f'semana {s+1}'][dia][horario])
-                    materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
-    print('*Créditos totais: '+str(grade1['creditos']))
+if len(gradesIdeais)>4:
+    for g in range(5):
+        print(f'----------- Grade {g+1} -----------')
+        materiasOutput = {}
+        for s in range(2):
+            grade1 = gradesIdeais[g]
+            for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+                for horario in grade1[f'semana {s+1}'][dia].keys():
+                    if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
+                        pass
+                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
+                    else:
+                        print(grade1[f'semana {s+1}'][dia][horario])
+                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+        print('*Créditos totais: '+str(grade1['creditos']))
+        print(' ')
+    print('----------------------------')
+    print(f'Existem mais {len(gradesIdeais)-5} grades ideias! (insira "1" para saber mais)')
+    print('----------------------------')
     print(' ')
+else:
+    for g in range(len(gradesIdeais)):
+        print(f'----------- Grade {g+1} -----------')
+        materiasOutput = {}
+        for s in range(2):
+            grade1 = gradesIdeais[g]
+            for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+                for horario in grade1[f'semana {s+1}'][dia].keys():
+                    if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
+                        pass
+                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
+                    else:
+                        print(grade1[f'semana {s+1}'][dia][horario])
+                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+        print('*Créditos totais: '+str(grade1['creditos']))
+        print(' ')
+
 
 
 '''Funcoes Interface'''
@@ -395,10 +421,13 @@ while latch:
     print('2. Grades alternativas')
     print('3. Configurar cursos')
     print('4. Configurar campus')
+    print('5. Configurar período')
+    print('6. Configurar créditos')
     inp = input('O que você deseja fazer? ')
     print(' ')
     match inp:
         case '0':
+            save_file()
             latch = False
         case '1':
             _preferencias = []
@@ -409,6 +438,7 @@ while latch:
                 for aula in listaAulas.keys():
                     print(f'{n} - '+str(aula))
                     n += 1
+                print(' ')
                 inp = int(input('Selecione matérias para conter nas grades (0 para voltar / -1 para limpar preferências): '))
                 print(' ')
                 if inp == 0:
@@ -541,6 +571,48 @@ while latch:
                     case '5':
                         print('Mudanças salvas!')
                         save_file()
-
-                            
-
+        case '4':
+            print('1 - SA')
+            print('2 - SB')
+            print('3 - Ambos')
+            print(f'Atual: {_campus}')
+            print(' ')
+            inp = input('Selecione o campus: ')
+            match inp:
+                case '1':
+                    _campus = 'SA'
+                case '2':
+                    _campus = 'SB'
+                case '3':
+                    _campus = 'Ambos'                   
+            print(f'Selecionado: {_campus}')
+            save_file()
+            print('Retornando ao menu anterior...')
+            print(' ')
+        case '5':
+            print('1 - Matutino')
+            print('2 - Noturno')
+            print('3 - Ambos')
+            print(f'Atual: {_turno}')
+            print(' ')
+            inp = input('Selecione o período: ')
+            match inp:
+                case '1':
+                    _turno = 'Matutino'
+                case '2':
+                    _turno = 'Noturno'
+                case '3':
+                    _turno = 'Ambos'                   
+            print(f'Selecionado: {_turno}')
+            save_file()
+            print('Retornando ao menu anterior...')
+            print(' ')
+        case '6':
+            print(f'Número de créditos atuais: {_creditos}')
+            print(' ')
+            inp = int(input('Insira o número de créditos alvo (insira número alto para maximizar os créditos): '))
+            _creditos = inp
+            print(f'Créditos atuais modificados para: {_creditos}')
+            save_file()
+            print('Retornando ao menu anterior...')
+            print(' ')
