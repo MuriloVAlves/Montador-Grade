@@ -423,6 +423,7 @@ while latch:
     print('4. Configurar campus')
     print('5. Configurar período')
     print('6. Configurar créditos')
+    print('7. Excluir dia da semana da grade')
     inp = input('O que você deseja fazer? ')
     print(' ')
     match inp:
@@ -483,11 +484,7 @@ while latch:
                                             print(grade1[f'semana {s+1}'][dia][horario])
                                             materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
                             print('*Créditos totais: '+str(grade1['creditos']))
-                            print(' ')
-                    
-                    
-                    
-                
+                            print(' ')       
         case '2':
             print('************** GRADES ALTERNATIVAS **************')
             #Grades alternativas
@@ -616,3 +613,22 @@ while latch:
             save_file()
             print('Retornando ao menu anterior...')
             print(' ')
+        case '7':
+            latch2 = True
+            while latch2:
+                print(f'Dias da semana excluídos: {_excluirDiaSemana}')
+                diasSemana = ['segunda','terça','quarta','quinta','sexta','sábado','domingo']
+                for n in range(len(diasSemana)):
+                    print(f'{n+1} - {diasSemana[n]}')
+                print(' ')
+                inp = int(input('Selecione os dias da semana para excluir da grade (0 para voltar/-1 para limpar a lista):'))
+                if inp == 0:
+                    save_file()
+                    latch2 = False
+                    print(' ')
+                elif inp == -1:
+                    _excluirDiaSemana = []
+                elif inp <= len(diasSemana):
+                    if diasSemana[inp-1] not in _excluirDiaSemana:
+                        _excluirDiaSemana.append(diasSemana[inp-1])
+                    
