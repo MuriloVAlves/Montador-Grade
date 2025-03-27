@@ -45,7 +45,7 @@ pttrn = re.compile(r'\d{1,3} / \d{1,3}')
 pages = re.split(pttrn,texto)
 
 #Remove header
-pttrn = re.compile(r'PRÁTICA 2\n')
+pttrn = re.compile(r'PRÁTICA 3\n')
 pgBody = []
 for page in pages:
     if len(re.findall(pttrn,page)) >0:
