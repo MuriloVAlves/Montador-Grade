@@ -513,51 +513,70 @@ while latch:
                     print(f'{n} - '+str(aula))
                     n += 1
                 print(' ')
-                inp = int(input('Selecione matérias para conter nas grades (0 para voltar / -1 para limpar preferências): '))
+                inp = input('Selecione matérias para conter nas grades (0 para voltar / -1 para limpar preferências / "info <nº>" para obter informações sobre a disciplina): ')
                 print(' ')
-                if inp == 0:
-                    latch2 = False
-                elif inp == -1:
-                    _preferencias = []
-                    print('As preferências foram apagadas!')
+                if "info " in inp:
+                    try:
+                        inp = int(inp.split("info ")[1])
+                        disc = listaAulas[list(listaAulas.keys())[inp-1]]
+                        print(f'Código da disciplina: {disc["Cod. Disciplina"]}')
+                        print(f'T-P-I: {disc["TPI"]}')
+                        print(f'Professores: {disc["professores"]}')
+                        print(f'Campus: {disc["campus"]}')
+                        print(f'Turno: {disc["turno"]}')
+                        print(f'Horário na semana 1: {disc["semana 1"]}')
+                        print(f'Horário na semana 2: {disc["semana 2"]}')
+                    except Exception:
+                        print('Certifique-se de que foi inserido o número da disciplina no lugar de "<nº>" no comando!')
                 else:
-                    _preferencias.append(list(listaAulas.keys())[inp-1])
-                    print('Preferências: ',_preferencias)
-                    for g in range(len(gradesIdeais)):
-                        #Separar materias da grade
-                        materiasOutput = {}
-                        for s in range(2):
-                            grade1 = gradesIdeais[g]
-                            for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
-                                for horario in grade1[f'semana {s+1}'][dia].keys():
-                                    if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
-                                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
-                                    else:
-                                        materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
-                        #Checar se todas as preferencias estão contidas na grade
-                        contido = 0
-                        for pref in _preferencias:
-                            for materia in list(materiasOutput.keys()):
-                                if pref in materia:
-                                    contido += 1
-                                    break
-                        #Caso verdadeiro
-                        if contido == len(_preferencias):
-                            #Print da grade
-                            print(f'----------- Grade {g+1} -----------')
-                            materiasOutput = {}
-                            for s in range(2):
-                                grade1 = gradesIdeais[g]
-                                for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
-                                    for horario in grade1[f'semana {s+1}'][dia].keys():
-                                        if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
-                                            pass
-                                            materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
-                                        else:
-                                            print(grade1[f'semana {s+1}'][dia][horario])
-                                            materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
-                            print('*Créditos totais: '+str(grade1['creditos']))
-                            print(' ')       
+                    try:
+                        inp = int(inp)
+                        if inp == 0:
+                            latch2 = False
+                        elif inp == -1:
+                            _preferencias = []
+                            print('As preferências foram apagadas!')
+                        else:
+                            _preferencias.append(list(listaAulas.keys())[inp-1])
+                            print('Preferências: ',_preferencias)
+                            for g in range(len(gradesIdeais)):
+                                #Separar materias da grade
+                                materiasOutput = {}
+                                for s in range(2):
+                                    grade1 = gradesIdeais[g]
+                                    for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+                                        for horario in grade1[f'semana {s+1}'][dia].keys():
+                                            if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
+                                                materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
+                                            else:
+                                                materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+                                #Checar se todas as preferencias estão contidas na grade
+                                contido = 0
+                                for pref in _preferencias:
+                                    for materia in list(materiasOutput.keys()):
+                                        if pref in materia:
+                                            contido += 1
+                                            break
+                                #Caso verdadeiro
+                                if contido == len(_preferencias):
+                                    #Print da grade
+                                    print(f'----------- Grade {g+1} -----------')
+                                    materiasOutput = {}
+                                    for s in range(2):
+                                        grade1 = gradesIdeais[g]
+                                        for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+                                            for horario in grade1[f'semana {s+1}'][dia].keys():
+                                                if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
+                                                    pass
+                                                    materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
+                                                else:
+                                                    print(grade1[f'semana {s+1}'][dia][horario])
+                                                    materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+                                    print('*Créditos totais: '+str(grade1['creditos']))
+                                    print(' ')       
+                    except Exception:
+                        print('Comando não encontrado! Verifique que o comando foi digitado corretamente')
+
         case '2':
             print('************** GRADES ALTERNATIVAS **************')
             #Grades alternativas
