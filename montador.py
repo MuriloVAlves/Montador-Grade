@@ -33,7 +33,28 @@ _creditos = int(re.findall(pttrn,texto[4])[0]) #Colocar um valor alto para maxim
 pttrn = re.compile(r"\./([A-Za-z\. 0-9/]+).txt")
 _endereco = './'+re.findall(pttrn,texto[5])[0]+'.txt'
 
+#recuperar materias feitas:
+pttrn = re.compile(r"'(.+?)'")
+_materiasFeitas = re.findall(pttrn,texto[6])
+
+
+
 '''PROGRAMA - NÃO MUDAR'''
+
+
+'''Funcoes Interface Config'''
+def save_file():
+    #Limpar configuracoes antigas
+    open('./bin/config.txt','w').close()
+    #Inserir configuracoes novas
+    with open('./bin/config.txt','a',encoding='utf-8') as arquivo:
+        arquivo.write('_cursos: '+str(_cursos)+'\n')
+        arquivo.write('_turno: '+str(_turno)+'\n')
+        arquivo.write('_campus: '+str(_campus)+'\n')
+        arquivo.write('_excluirDiaSemana: '+str(_excluirDiaSemana)+'\n')
+        arquivo.write('_creditos: '+str(_creditos)+'\n')
+        arquivo.write('_endereco: '+str(_endereco)+'\n')
+        arquivo.write('_materiasFeitas: '+str(_materiasFeitas))
 
 #Read text
 with open(_endereco,'r',encoding='utf-8') as arquivo:
@@ -156,6 +177,61 @@ listaAulas = novaLista
 
 #Output
 print(f'Encontradas {len(listaAulas.keys())} aulas com os parâmetros inseridos!')
+
+#Criação de filtragem de matérias já feitas
+latch = True
+while latch:
+    inp = input('Deseja filtrar as matérias já cursadas? [Y/n] ')
+    if inp == 'n':
+        latch = False
+    if inp == 'Y':
+        #Listar todas as matérias e numerar
+        #Separar somente o nome da matéria
+        pttrn = re.compile(r'([A-Z][0-9]?-|[A-Z]Noturno)')
+        listaCursos = {}
+        for aula in listaAulas.keys():
+            padr = re.findall(pttrn,str(aula))
+            #Populate dict
+            listaCursos[aula.split(padr[0])[0]] = 0
+        print(' ')
+        n = 1
+        for aula in listaCursos.keys():
+            print(f'{n} - '+str(aula))
+            n += 1
+        print(' ')
+        print('Matérias cursadas (serão removidas da grade final): ',_materiasFeitas)
+        latch2 = True
+        while latch2:
+            inp = int(input('Selecione as matérias já cursadas (0 para sair / -1 para limpar preferências): '))
+            print(' ')
+            if inp == 0:
+                inp = input('Salvar mudanças? [Y/n] ')
+                if inp == 'Y':
+                    save_file()
+                latch2 = False
+            elif inp == -1:
+                _materiasFeitas = []
+                print('As preferências foram apagadas!')
+                print('Matérias cursadas: ',_materiasFeitas)
+
+            else:
+                if list(listaCursos.keys())[inp-1] not in _materiasFeitas:
+                    _materiasFeitas.append(list(listaCursos.keys())[inp-1])
+                print('Matérias cursadas: ',_materiasFeitas)
+
+#Limpar matérias já cursadas
+novaLista = copy.deepcopy(listaAulas)
+for cursada in _materiasFeitas:
+    for mat in listaAulas:
+        #Caso a matéria já tenha sido cursada:
+        if cursada in mat:
+            #Pop
+            pop = novaLista.pop(mat)
+#Retornar a lista para as aulas
+listaAulas = novaLista
+
+print(' ')
+print(f'Total de {len(listaAulas.keys())} turmas com aulas não cursadas!')
 print('Gerando grades...')
 
 #Iniciar a criação da grade
@@ -199,7 +275,7 @@ def montar_grade(_aulas:dict,_grade:dict,nested = 1):
     delta2 = 0
     for aula in _aulas.keys():
         if time.time()-delta2>0.5:
-            print(f'\r{len(gradesFinal)} grades encontradas! -> '+'Testando classes... '+f'(tempo: {trunc(time.time()-delta)}s)',end='')
+            print(f'\r{len(gradesFinal)} grades encontradas! -> '+'Testando classes... '+f'(tempo: {trunc(time.time()-delta)}s)'+f' [Nível: {nested}]',end='')
             delta2 = time.time()
         # print('----------')
         # print('nested:',nested)
@@ -273,6 +349,18 @@ def montar_grade(_aulas:dict,_grade:dict,nested = 1):
         #Fim da grade
         #Salvar caso seja uma grade nova
         if not _grade in gradesFinal:
+            print('\r                                                                                                                                                                \n')
+            print('////////////////////////////////////////////////////')
+            dictMaterias = {}
+            for semana in _grade.keys():
+                if semana != 'creditos':
+                    for dia in _grade[semana].keys():
+                        for hora in _grade[semana][dia].keys():
+                            dictMaterias[_grade[semana][dia][hora]] = 0
+            for mat in list(dictMaterias.keys()):
+                print(mat)
+            print("////////////////////////////////////////////////////")
+            print('')
             gradesFinal.append(copy.deepcopy(_grade))
             return _recoverGrid
         else:
@@ -393,21 +481,6 @@ else:
                         materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
         print('*Créditos totais: '+str(grade1['creditos']))
         print(' ')
-
-
-
-'''Funcoes Interface'''
-def save_file():
-    #Limpar configuracoes antigas
-    open('./bin/config.txt','w').close()
-    #Inserir configuracoes novas
-    with open('./bin/config.txt','a',encoding='utf-8') as arquivo:
-        arquivo.write('_cursos: '+str(_cursos)+'\n')
-        arquivo.write('_turno: '+str(_turno)+'\n')
-        arquivo.write('_campus: '+str(_campus)+'\n')
-        arquivo.write('_excluirDiaSemana: '+str(_excluirDiaSemana)+'\n')
-        arquivo.write('_creditos: '+str(_creditos)+'\n')
-        arquivo.write('_endereco: '+str(_endereco)+'\n')
         
 
 

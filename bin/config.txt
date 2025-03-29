@@ -1,6 +1,7 @@
 _cursos: []
-_turno: Noturno
-_campus: SA
-_excluirDiaSemana: ['sábado', 'domingo']
+_turno: Ambos
+_campus: Ambos
+_excluirDiaSemana: []
 _creditos: 99
 _endereco: ./planilha.txt
+_materiasFeitas: []
