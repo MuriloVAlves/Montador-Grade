@@ -539,6 +539,7 @@ while latch:
                         else:
                             _preferencias.append(list(listaAulas.keys())[inp-1])
                             print('Preferências: ',_preferencias)
+                            found = False
                             for g in range(len(gradesIdeais)):
                                 #Separar materias da grade
                                 materiasOutput = {}
@@ -559,6 +560,7 @@ while latch:
                                             break
                                 #Caso verdadeiro
                                 if contido == len(_preferencias):
+                                    found = True
                                     #Print da grade
                                     print(f'----------- Grade {g+1} -----------')
                                     materiasOutput = {}
@@ -574,6 +576,34 @@ while latch:
                                                     materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
                                     print('*Créditos totais: '+str(grade1['creditos']))
                                     print(' ')       
+                            if not found:
+                                print("A matéria selecionada não se encontra nas grades ideias...")
+                                print("Sugerindo a partir de grades alternativas...")
+                                maxCred = 0
+                                for g in range(len(gradesAlternativas)):
+                                    materiasOutput = {}
+                                    for s in range(2):
+                                        grade1 = gradesAlternativas[g]
+                                        for dia in grade1[f'semana {s+1}'].keys(): #creditos sempre no fim
+                                            for horario in grade1[f'semana {s+1}'][dia].keys():
+                                                if str(grade1[f'semana {s+1}'][dia][horario]) in list(materiasOutput.keys()):
+                                                    materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] += 1
+                                                else:
+                                                    materiasOutput[str(grade1[f'semana {s+1}'][dia][horario])] = 1
+                                    contido = 0
+                                    for pref in _preferencias:
+                                        for materia in list(materiasOutput.keys()):
+                                            if pref in materia:
+                                                contido += 1
+                                                break
+                                    if contido == len(_preferencias):
+                                        print(f'Grade {g+1} - {str(grade1["creditos"])} créditos')
+                                        if grade1["creditos"] > maxCred:
+                                            maxCred = grade1["creditos"]
+                                print(f'Créditos máximos: {maxCred}!')
+                                print('Tente executar o aplicativo com os números de créditos indicados para encontrar as matérias nas grades ideais...')
+
+                                
                     except Exception:
                         print('Comando não encontrado! Verifique que o comando foi digitado corretamente')
 
