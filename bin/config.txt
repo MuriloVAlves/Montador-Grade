@@ -1,7 +1,7 @@
-_cursos: ['BACHARELADO EM ENGENHARIA DE INFORMAÇÃO', 'BACHARELADO EM ENGENHARIA DE INSTRUMENTAÇÃO, AUTOMAÇÃO E ROBÓTICA']
-_turno: Noturno
-_campus: SA
-_excluirDiaSemana: ['sábado', 'domingo']
+_cursos: []
+_turno: Ambos
+_campus: Ambos
+_excluirDiaSemana: []
 _creditos: 99
 _endereco: ./planilha.txt
-_materiasFeitas: [' ELETRÔNICA DIGITAL ', ' FUNDAMENTOS DE FOTÔNICA ', ' SISTEMAS DE CONTROLE I ', ' ELETROMAGNETISMO APLICADO ', ' MODELAGEM E CONTROLE ', ' SENSORES E TRANSDUTORES ', ' TEORIA DE CONTROLE ÓTIMO ']
+_materiasFeitas: []
