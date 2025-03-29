@@ -8,6 +8,7 @@ Para a utilização do programa
 Obs.
 - O programa pode demorar para rodar porque ele possui uma função recursiva montada para garantir que sejam criadas todas as grades possíveis
 - É recomendado inserir algumas matérias como feitas para reduzir o tempo de processamento do algoritmo
+- Caso não seja salva a modificação na variável de matérias cursadas, as modificações serão aplicadas somente à instância do programa
 - Caso um número muito alto seja inserido como número de créditos (recomendado: 99), o programa irá procurar as grades com maior quantidade de créditos 
 - Todas as funções possuem uma interface pelo terminal, não é recomendado alterar o documento config.txt manualmente
 - A informação [Nível: <n>] se refere à quantidade de instâncias de recursividade que estão sendo calculadas
